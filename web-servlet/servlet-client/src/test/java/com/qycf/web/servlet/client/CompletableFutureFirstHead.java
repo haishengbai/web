@@ -2,10 +2,7 @@ package com.qycf.web.servlet.client;
 
 import org.junit.Test;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 
 import static org.junit.Assert.*;
 
@@ -60,7 +57,7 @@ public class CompletableFutureFirstHead {
     }
 
     @Test
-    public void thenApplyAsyncWithExecutorExample(){
+    public void thenApplyAsyncWithExecutorExample() {
         ExecutorService executor = Executors.newFixedThreadPool(3, new ThreadFactory() {
             int count = 1;
 
@@ -104,5 +101,49 @@ public class CompletableFutureFirstHead {
         assertTrue("Result was empty", result.length() > 0);
     }
 
+    @Test
+    public void completeExceptionallyExample() {
+
+        CompletableFuture cf = CompletableFuture.completedFuture("message").thenApplyAsync(
+                a -> {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return a.toUpperCase();
+                });
+        CompletableFuture exceptionHandler = cf.handle((s, th) -> {
+            return (th != null) ? "message upon cancel" : "";
+        });
+        cf.completeExceptionally(new RuntimeException("completed exceptionally"));
+        assertTrue("Was not completed exceptionally", cf.isCompletedExceptionally());
+        try {
+            cf.join();
+            fail("Should have thrown an exception");
+        } catch (CompletionException ex) { // just for testing
+            assertEquals("completed exceptionally", ex.getCause().getMessage());
+        }
+
+        assertEquals("message upon cancel", exceptionHandler.join());
+    }
+
+
+    @Test
+    public void cancelExample() {
+        CompletableFuture cf = CompletableFuture.completedFuture("message").thenApplyAsync(a -> {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return a.toUpperCase();
+                }
+        );
+        CompletableFuture cf2 = cf.exceptionally(throwable -> "canceled message");
+        assertTrue("Was not canceled", cf.cancel(true));
+        assertTrue("Was not completed exceptionally", cf.isCompletedExceptionally());
+        assertEquals("canceled message", cf2.join());
+    }
 
 }
