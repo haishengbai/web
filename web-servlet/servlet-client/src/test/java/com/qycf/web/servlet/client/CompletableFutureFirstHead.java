@@ -2,7 +2,10 @@ package com.qycf.web.servlet.client;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -270,5 +273,106 @@ public class CompletableFutureFirstHead {
                         (s1, s2) -> s1 + s2);
         assertEquals("MESSAGEmessage", cf.join());
     }
+
+    @Test
+    public void thenComposeExample() {
+        String original = "Message";
+        CompletableFuture cf = CompletableFuture.completedFuture(original).thenApply(s -> {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return s.toUpperCase();
+                })
+                .thenCompose(upper -> CompletableFuture.completedFuture(original).thenApply(s -> {
+                            try {
+                                Thread.sleep(3000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            return s.toLowerCase();
+                        })
+                        .thenApply(s -> upper + s));
+        assertEquals("MESSAGEmessage", cf.join());
+    }
+
+
+    @Test
+    public void anyOfExample() {
+        StringBuilder result = new StringBuilder();
+        List<String> messages = Arrays.asList("a", "b", "c");
+        List<CompletableFuture<String>> futures = messages.stream()
+                .map(msg -> CompletableFuture.completedFuture(msg).thenApply(s -> {
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return s.toUpperCase();
+                }))
+                .collect(Collectors.toList());
+        CompletableFuture.anyOf(futures.toArray(new CompletableFuture[futures.size()])).whenComplete((res, th) -> {
+            if (th == null) {
+//                assertTrue(isUpperCase((String) res));
+                System.out.println(res);
+                result.append(res);
+            }
+        });
+        assertTrue("Result was empty", result.length() > 0);
+    }
+
+
+    @Test
+    public void allOfExample() {
+        StringBuilder result = new StringBuilder();
+        List<String> messages = Arrays.asList("a", "b", "c");
+        List<CompletableFuture<String>> futures = messages.stream()
+                .map(msg -> CompletableFuture.completedFuture(msg).thenApply(s -> {
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return s.toUpperCase();
+                }))
+                .collect(Collectors.toList());
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).whenComplete((v, th) -> {
+            futures.forEach(cf -> {
+//                System.out.println(cf.getNow(null));
+//                assertTrue(isUpperCase(cf.getNow(null)));
+            });
+            result.append("done");
+        });
+        assertTrue("Result was empty", result.length() > 0);
+    }
+
+    @Test
+    public void allOfAsyncExample() {
+        StringBuilder result = new StringBuilder();
+        List<String> messages = Arrays.asList("a", "b", "c");
+        List<CompletableFuture<String>> futures = messages.stream()
+                .map(msg -> CompletableFuture.completedFuture(msg).thenApply(s -> {
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return s.toUpperCase();
+                }))
+                .collect(Collectors.toList());
+        CompletableFuture allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                .whenComplete((v, th) -> {
+                    futures.forEach(cf -> {
+                        System.out.println(cf.getNow(null));
+//                        assertTrue(isUpperCase(cf.getNow(null)));
+
+                    });
+                    result.append("done");
+                });
+        allOf.join();
+        assertTrue("Result was empty", result.length() > 0);
+    }
+
 
 }
