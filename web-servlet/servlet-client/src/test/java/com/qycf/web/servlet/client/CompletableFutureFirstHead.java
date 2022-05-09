@@ -146,4 +146,129 @@ public class CompletableFutureFirstHead {
         assertEquals("canceled message", cf2.join());
     }
 
+    @Test
+    public void applyToEitherExample() {
+        String original = "Message";
+        CompletableFuture cf1 = CompletableFuture.completedFuture(original)
+                .thenApplyAsync(s -> {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return s.toUpperCase();
+                });
+        CompletableFuture cf2 = cf1.applyToEither(
+                CompletableFuture.completedFuture(original).thenApplyAsync(s -> {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return s.toLowerCase();
+                }),
+                s -> s + " from applyToEither");
+        System.out.println(cf2.join().toString());
+        assertTrue(cf2.join().toString().endsWith(" from applyToEither"));
+    }
+
+    @Test
+    public void acceptEitherExample() {
+        String original = "Message";
+        StringBuilder result = new StringBuilder();
+        CompletableFuture cf = CompletableFuture.completedFuture(original)
+                .thenApplyAsync(s -> {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return s.toUpperCase();
+                })
+                .acceptEither(CompletableFuture.completedFuture(original).thenApplyAsync(s -> {
+                            try {
+                                Thread.sleep(4000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            return s.toLowerCase();
+                        }),
+                        s -> result.append(s).append(" acceptEither"));
+        cf.join();
+        System.out.println(result);
+        assertTrue("Result was empty", result.toString().endsWith("acceptEither"));
+    }
+
+    @Test
+    public void runAfterBothExample() {
+        String original = "Message";
+        StringBuilder result = new StringBuilder();
+        CompletableFuture.completedFuture(original).thenApply(String::toUpperCase).runAfterBoth(
+                CompletableFuture.completedFuture(original).thenApply(String::toLowerCase),
+                () -> result.append("done"));
+        System.out.println(result);
+        assertTrue("Result was empty", result.length() > 0);
+    }
+
+    @Test
+    public void thenAcceptBothExample() {
+        String original = "Message";
+        StringBuilder result = new StringBuilder();
+        CompletableFuture.completedFuture(original).thenApply(String::toUpperCase).thenAcceptBoth(
+                CompletableFuture.completedFuture(original).thenApply(String::toLowerCase),
+                (s1, s2) -> result.append(s1 + s2));
+        assertEquals("MESSAGEmessage", result.toString());
+    }
+
+    @Test
+    public void thenCombineExample() {
+        String original = "Message";
+        CompletableFuture cf = CompletableFuture.completedFuture(original).thenApply(s -> {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return s.toUpperCase();
+
+                })
+                .thenCombine(CompletableFuture.completedFuture(original).thenApply(s -> {
+                            try {
+                                Thread.sleep(3000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            return s.toLowerCase();
+
+                        }),
+                        (s1, s2) -> s1 + s2);
+        assertEquals("MESSAGEmessage", cf.getNow(null));
+    }
+
+
+    @Test
+    public void thenCombineAsyncExample() {
+        String original = "Message";
+        CompletableFuture cf = CompletableFuture.completedFuture(original)
+                .thenApplyAsync(s -> {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return s.toUpperCase();
+
+                })
+                .thenCombine(CompletableFuture.completedFuture(original).thenApplyAsync(s -> {
+                            try {
+                                Thread.sleep(2000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            return s.toLowerCase();
+                        }),
+                        (s1, s2) -> s1 + s2);
+        assertEquals("MESSAGEmessage", cf.join());
+    }
+
 }
