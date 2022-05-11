@@ -36,9 +36,9 @@ import java.util.Set;
 public final class HttpClientUtils {
 
     public static final RequestConfig DEFAULT_REQ_CONFIG = RequestConfig.custom()
-            .setSocketTimeout(30000)
-            .setConnectTimeout(30000)
-            .setConnectionRequestTimeout(30000)
+//            .setSocketTimeout(3000)
+//            .setConnectTimeout(3000)
+//            .setConnectionRequestTimeout(3000)
             .build();
 
     private static final PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();

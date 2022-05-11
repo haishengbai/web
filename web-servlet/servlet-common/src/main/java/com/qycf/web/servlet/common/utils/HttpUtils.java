@@ -9,6 +9,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -17,6 +18,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -32,10 +34,24 @@ public class HttpUtils {
 
     private static Gson gson = new Gson();
 
-    private static String bmlUrl;
 
-    public static void setBmlUrl(String url) {
-        bmlUrl = url.replace("8086", "8088/faceRecognition/");
+    public static String getCall(String url) {
+        if (Strings.isNullOrEmpty(url)) {
+            return "";
+        }
+
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
+        httpGet.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
+
+        String response = null;
+        try {
+            response = HttpClientUtils.executeGet(httpClient, httpGet);
+        } catch (IOException e) {
+            log.error("----------error--------");
+            log.error("callback result is error,message {}", Throwables.getRootCause(e).getMessage());
+        }
+        return response;
     }
 
     public static String postCall(String url, Object inputParams) {
@@ -91,9 +107,6 @@ public class HttpUtils {
     }
 
     public static String postCallFormData(String url, byte[] inputParams) {
-        if (url.contains(bmlUrl)) {
-            return "";
-        }
 
         HttpPost httpPost = new HttpPost(url);
         httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
@@ -110,11 +123,7 @@ public class HttpUtils {
         }
         String response = null;
         try {
-            if (url.contains(bmlUrl)) {
-//                BMLCommonUtils.BMLAIAuthorization(httpPost, "");
-            }
             response = HttpClientUtils.executePost(httpClient, httpPost);
-            //            HttpResponse execute = httpClient.execute(httpPost);
         } catch (Exception e) {
             log.error("----------error--------");
             log.error("callback result is error,message {}", Throwables.getRootCause(e).getMessage());
