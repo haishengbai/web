@@ -24,7 +24,7 @@ public class HttpRequestController {
             int finalI = i;
             executor.execute(() -> {
                 Long start = System.currentTimeMillis();
-                String result = HttpUtils.getCall("http://localhost:8080/mock/brokenPipe");
+                String result = HttpUtils.getCall("http://localhost:6083/mock/brokenPipe");
                 System.out.println("第 " + finalI + "次请求耗时" + (System.currentTimeMillis() - start)/1000 + "s :" + result);
             });
 
@@ -34,12 +34,11 @@ public class HttpRequestController {
 
 
     public static void main(String[] args) {
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 400; i++) {
             int finalI = i;
             executor.execute(() -> {
-                String result = HttpUtils.getCall("http://localhost:8080/mock/brokenPipe");
+                String result = HttpUtils.getCall("http://localhost:6083/mock/brokenPipe");
                 System.out.println("第 " + finalI + "次请求:" + result);
-
             });
 
         }
