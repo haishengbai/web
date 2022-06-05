@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="info" name="runtime" packages="">
+    <Properties>
+        <Property name="log-path">logs/${env:HOSTNAME:-}</Property>
+        <Property name="LOG_PATTERN"
+                  value="[%X{traceId}] [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1.}[%M:%L] - %m%n" />
+    </Properties>
+    <Appenders>
+        <!-- 本地文件日志 每个100M，最多100个滚动 -->
+        <RollingFile name="file-log"
+                     fileName="${log-path}/runtime.log"
+                     filePattern="${log-path}/runtime-%d{yyyy-MM-dd}-%i.log" append="true">
+            <PatternLayout>
+                <pattern>${LOG_PATTERN}
+                </pattern>
+            </PatternLayout>
+            <JSONLayout compact="true" eventEol="true">
+                <KeyValuePair key="app.id" value="${sys:app.id}" />
+                <KeyValuePair key="env" value="${sys:env}" />
+                <KeyValuePair key="traceId" value="${ctx:traceId}"/>
+            </JSONLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10"></DefaultRolloverStrategy>
+        </RollingFile>
+
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="${sys:log4j2.level:-INFO}" additivity="false">
+            <appender-ref ref="console" />
+            <appender-ref ref="file-log" />
+        </Root>
+        <!-- 公司内部类的日志 -->
+        <Logger name="com.qycf.web" level="${sys:sai.level:-INFO}"
+                additivity="false">
+            <appender-ref ref="console" />
+            <appender-ref ref="file-log" />
+        </Logger>
+
+    </Loggers>
+</Configuration>

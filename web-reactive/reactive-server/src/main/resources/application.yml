@@ -1,0 +1,6 @@
+server:
+  port: 6083
+  undertow:
+    threads:
+      worker: 1
+      io: 1
