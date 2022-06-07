@@ -1,4 +1,4 @@
-package cn.enjoyedu.nettyws.server;
+package com.qycf.web.netty.ws.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;

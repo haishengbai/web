@@ -1,4 +1,4 @@
-package cn.enjoyedu.nettyws.client;
+package com.qycf.web.netty.ws.client;
 
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;

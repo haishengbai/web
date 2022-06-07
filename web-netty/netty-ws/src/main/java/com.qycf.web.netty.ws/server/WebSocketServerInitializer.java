@@ -1,4 +1,4 @@
-package cn.enjoyedu.nettyws.server;
+package com.qycf.web.netty.ws.server;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
